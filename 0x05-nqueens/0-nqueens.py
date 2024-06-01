@@ -1,58 +1,53 @@
-#!/usr/bin/python3
 import sys
 
-def print_usage_and_exit():
-    print("Usage: nqueens N")
-    sys.exit(1)
+def is_safe(board, row, col, N):
+    # Check if there is a queen in the same column
+    for i in range(row):
+        if board[i][col] == 1:
+            return False
+
+    # Check upper left diagonal
+    for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
+        if board[i][j] == 1:
+            return False
+
+    # Check upper right diagonal
+    for i, j in zip(range(row, -1, -1), range(col, N)):
+        if board[i][j] == 1:
+            return False
+
+    return True
 
 def solve_nqueens(N):
-    def is_safe(board, row, col):
-        for i in range(col):
-            if board[row][i] == 1:
-                return False
-        for i, j in zip(range(row, -1, -1), range(col, -1, -1)):
-            if board[i][j] == 1:
-                return False
-        for i, j in zip(range(row, N, 1), range(col, -1, -1)):
-            if board[i][j] == 1:
-                return False
-        return True
+    board = [[0] * N for _ in range(N)]
 
-    def solve(board, col):
-        if col >= N:
-            solution = []
+    def solve(row):
+        if row == N:
             for i in range(N):
-                for j in range(N):
-                    if board[i][j] == 1:
-                        solution.append([i, j])
-            solutions.append(solution)
-            return True
-        res = False
-        for i in range(N):
-            if is_safe(board, i, col):
-                board[i][col] = 1
-                res = solve(board, col + 1) or res
-                board[i][col] = 0
-        return res
+                print([i, board[i].index(1)])
+            print()
+            return
 
-    board = [[0 for _ in range(N)] for _ in range(N)]
-    solutions = []
-    solve(board, 0)
-    return solutions
+        for col in range(N):
+            if is_safe(board, row, col, N):
+                board[row][col] = 1
+                solve(row + 1)
+                board[row][col] = 0
 
-if len(sys.argv) != 2:
-    print_usage_and_exit()
+    solve(0)
 
-try:
-    N = int(sys.argv[1])
-except ValueError:
-    print("N must be a number")
-    sys.exit(1)
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: nqueens N")
+        sys.exit(1)
 
-if N < 4:
-    print("N must be at least 4")
-    sys.exit(1)
+    try:
+        N = int(sys.argv[1])
+        if N < 4:
+            print("N must be at least 4")
+            sys.exit(1)
+    except ValueError:
+        print("N must be a number")
+        sys.exit(1)
 
-solutions = solve_nqueens(N)
-for solution in solutions:
-    print(solution)
+    solve_nqueens(N)
