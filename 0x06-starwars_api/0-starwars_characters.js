@@ -3,57 +3,50 @@
 const request = require('request');
 
 const movieId = process.argv[2];
-const filmEndPoint = `https://swapi-api.hbtn.io/api/films/${movieId}`;
+const filmEndPoint = 'https://swapi-api.hbtn.io/api/films/' + movieId;
+let people = [];
+const names = [];
 
 const requestCharacters = async () => {
-  return new Promise((resolve, reject) => {
-    request(filmEndPoint, (err, res, body) => {
-      if (err) {
-        reject(`Error: ${err}`);
-      } else if (res.statusCode !== 200) {
-        reject(`StatusCode: ${res.statusCode}`);
-      } else {
-        const jsonBody = JSON.parse(body);
-        resolve(jsonBody.characters);
-      }
-    });
-  });
+  await new Promise(resolve => request(filmEndPoint, (err, res, body) => {
+    if (err || res.statusCode !== 200) {
+      console.error('Error: ', err, '| StatusCode: ', res.statusCode);
+    } else {
+      const jsonBody = JSON.parse(body);
+      people = jsonBody.characters;
+      resolve();
+    }
+  }));
 };
 
-const requestNames = async (people) => {
-  const names = [];
-  for (const person of people) {
-    const name = await new Promise((resolve, reject) => {
-      request(person, (err, res, body) => {
-        if (err) {
-          reject(`Error: ${err}`);
-        } else if (res.statusCode !== 200) {
-          reject(`StatusCode: ${res.statusCode}`);
+const requestNames = async () => {
+  if (people.length > 0) {
+    for (const p of people) {
+      await new Promise(resolve => request(p, (err, res, body) => {
+        if (err || res.statusCode !== 200) {
+          console.error('Error: ', err, '| StatusCode: ', res.statusCode);
         } else {
           const jsonBody = JSON.parse(body);
-          resolve(jsonBody.name);
+          names.push(jsonBody.name);
+          resolve();
         }
-      });
-    });
-    names.push(name);
+      }));
+    }
+  } else {
+    console.error('Error: Got no Characters for some reason');
   }
-  return names;
 };
 
 const getCharNames = async () => {
-  try {
-    const people = await requestCharacters();
-    const names = await requestNames(people);
+  await requestCharacters();
+  await requestNames();
 
-    names.forEach((name, index) => {
-      if (index === names.length - 1) {
-        process.stdout.write(name);
-      } else {
-        process.stdout.write(name + '\n');
-      }
-    });
-  } catch (error) {
-    console.error(error);
+  for (const n of names) {
+    if (n === names[names.length - 1]) {
+      process.stdout.write(n);
+    } else {
+      process.stdout.write(n + '\n');
+    }
   }
 };
 
