@@ -1,4 +1,4 @@
-d#!/usr/bin/python3
+#!/usr/bin/python3
 
 """ Contains makeChange function"""
 
